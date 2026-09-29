@@ -1,0 +1,9 @@
+# Dados reais de clientes (LGPD) - nunca versionar
+teste_entrada/
+
+# Arquivos gerados pelo Python
+__pycache__/
+*.pyc
+
+# Ambiente virtual
+.venv/
