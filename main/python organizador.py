@@ -1,12 +1,5 @@
 from pathlib import Path
 
-def listar_arquivos(pasta, extensao):
-    encontrados = []
-    for item in pasta.iterdir():
-        if item.suffix.lower() == extensao:
-            encontrados.append(item)
-    return encontrados
-
 EXTENSOES = {".pdf", ".docx"}
 
 def listar_documentos(pasta):
