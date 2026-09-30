@@ -9,7 +9,7 @@ def listar_arquivos(pasta, extensao):
 
 EXTENSOES = {".pdf", ".docx"}
 
-def listar_orcamentos(pasta):
+def listar_documentos(pasta):
     encontrados = []
     for item in pasta.rglob("*"):
         if (
@@ -20,9 +20,20 @@ def listar_orcamentos(pasta):
             encontrados.append(item)
     return encontrados
 
+def classificar(arquivo):
+    nome = arquivo.name.lower()
+    if "recibo" in nome:
+        return "recibo"
+    elif "contrato" in nome:
+        return "contrato"
+    elif "orçam" in nome or "orcam" in nome:
+        return "orçamento"
+    else:
+        return "outro"
+    
 pasta_teste= Path("teste_entrada")
-orcamentos = listar_orcamentos(pasta_teste)
+orcamentos = listar_documentos(pasta_teste)
 
 print("Encontrei", len(orcamentos), "orçamentos:")
 for arquivo in orcamentos:
-    print(arquivo.name, "-> pasta:", arquivo.parent.name)
+    print(classificar(arquivo), "->", arquivo.name)

@@ -1,3 +1,7 @@
-cliente é identificado pelo endereço
-sem rua vai para _Sem endereco
-sufixo do nome não é interpretado
+- cliente é identificado pelo endereço
+- sem rua vai para _Sem endereco
+- sufixo do nome não é interpretado
+- uso de sistema que possa procurar nas subpastas também
+- o arquivo vai ser categorizado pela data dentro do documento e não mais pelo nome do arquivo
+- criar redudancia caso não possa ser categorizado pelo conteudo do documento,vai ser pelo nome do arquivo
+- separar em tipos de arquivos
