@@ -21,12 +21,14 @@ def classificar(arquivo):
         return "contrato"
     elif "orçam" in nome or "orcam" in nome:
         return "orçamento"
+    elif "lista" in nome:
+        return "lista"
     else:
         return "outro"
     
 pasta_teste= Path("teste_entrada")
-orcamentos = listar_documentos(pasta_teste)
+documentos = listar_documentos(pasta_teste)
 
-print("Encontrei", len(orcamentos), "orçamentos:")
-for arquivo in orcamentos:
+print("Encontrei", len(documentos), "documentos:")
+for arquivo in documentos:
     print(classificar(arquivo), "->", arquivo.name)
