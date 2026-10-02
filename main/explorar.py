@@ -1,5 +1,6 @@
 import re
 import unicodedata
+from datetime import datetime
 from pathlib import Path
 
 from docx import Document
@@ -41,6 +42,7 @@ RUAS = {
     "alves montes": "São Cristóvão",
     "coronel cabrita": "São Cristóvão",
     "vaz de toledo": "Engenho Novo",
+    "rua alves nº 41": "São Cristóvão",
     "nossa senhora de lourdes": "Vila Isabel",
     "nossa senhora de lurdes": "Vila Isabel",
     "jornalista orlando dantas": "Laranjeiras",
@@ -65,6 +67,8 @@ MESES = {
     "dezembro": "12",
 }
 
+
+# ---------- Utilidades de texto ----------
 
 def normalizar(texto):
     decomposto = unicodedata.normalize("NFD", texto)
@@ -94,6 +98,8 @@ def ler_cabecalho(arquivo):
     return cabecalho
 
 
+# ---------- Bairro ----------
+
 def procurar(texto, dicionario):
     encontrados = []
     for chave in dicionario:
@@ -117,6 +123,9 @@ def encontrar_bairro(texto):
 
     return None
 
+
+# ---------- Data ----------
+
 def encontrar_data(texto):
     # Plano A: formato 24/01/2026
     resultado = re.search(r"\d{2}/\d{2}/\d{4}", texto)
@@ -135,41 +144,65 @@ def encontrar_data(texto):
     return None
 
 
+def converter_data(texto_data):
+    try:
+        data = datetime.strptime(texto_data, "%d/%m/%Y")
+    except ValueError:
+        return None
+    if data.year < 2019 or data > datetime.now():
+        return None
+    return data
+
+
+def data_pelo_nome(arquivo):
+    resultado = re.search(r"\d{6,}", arquivo.stem)
+    if resultado is None:
+        return None
+    numeros = resultado.group()
+    if len(numeros) >= 8:
+        # formato DDMMAAAA (o que vier depois é sufixo)
+        texto_data = numeros[0:2] + "/" + numeros[2:4] + "/" + numeros[4:8]
+    else:
+        # formato DDMMAA (6 ou 7 dígitos)
+        texto_data = numeros[0:2] + "/" + numeros[2:4] + "/20" + numeros[4:6]
+    return converter_data(texto_data)
+
+
+def descobrir_data(arquivo, cabecalho):
+    data_texto = encontrar_data(cabecalho)
+    if data_texto is not None:
+        data = converter_data(data_texto)
+        if data is not None:
+            return data
+    # Plano C: o nome do arquivo
+    return data_pelo_nome(arquivo)
+
+
+# ---------- Teste em massa ----------
+
 pasta = Path("teste_entrada")
 contagem = {}
-revisar = 0
+sem_bairro = 0
+sem_data = 0
 
 for arquivo in pasta.rglob("*.docx"):
     if arquivo.name.startswith("~$"):
         continue
     cabecalho = ler_cabecalho(arquivo)
+
     bairro = encontrar_bairro(cabecalho)
     if bairro is None:
-        print("REVISAR ->", arquivo.name, "|", cabecalho[:120])
-        revisar += 1
+        print("SEM BAIRRO ->", arquivo.name)
+        sem_bairro += 1
     else:
         contagem[bairro] = contagem.get(bairro, 0) + 1
+
+    data = descobrir_data(arquivo, cabecalho)
+    if data is None:
+        print("SEM DATA ->", arquivo.name, "|", cabecalho[:80])
+        sem_data += 1
 
 print("========== BAIRROS ==========")
 for bairro in sorted(contagem):
     print(bairro, "->", contagem[bairro])
-print("Para revisar:", revisar)
-
-print("========== VERFICAÇÃO DE DATAS ==========")
-pasta = Path("teste_entrada")
-achei = 0
-nao_achei = 0
-
-for arquivo in pasta.rglob("*.docx"):
-    if arquivo.name.startswith("~$"):
-        continue
-    cabecalho = ler_cabecalho(arquivo)
-    data = encontrar_data(cabecalho)
-    if data is None:
-        print("SEM DATA ->", arquivo.name, "|", cabecalho[:120])
-        nao_achei += 1
-    else:
-        achei += 1
-
-print("Com data:", achei, "| Sem data:", nao_achei)
-
+print("Sem bairro:", sem_bairro, "| Sem data:", sem_data)
