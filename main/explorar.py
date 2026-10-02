@@ -1,3 +1,4 @@
+import re
 import unicodedata
 from pathlib import Path
 
@@ -47,6 +48,21 @@ RUAS = {
     "linsde vasconcelos": "Méier",
     "lins vasconcelos": "Méier",
     "pereira soares": "Vila Isabel",
+}
+
+MESES = {
+    "janeiro": "01",
+    "fevereiro": "02",
+    "marco": "03",
+    "abril": "04",
+    "maio": "05",
+    "junho": "06",
+    "julho": "07",
+    "agosto": "08",
+    "setembro": "09",
+    "outubro": "10",
+    "novembro": "11",
+    "dezembro": "12",
 }
 
 
@@ -101,6 +117,23 @@ def encontrar_bairro(texto):
 
     return None
 
+def encontrar_data(texto):
+    # Plano A: formato 24/01/2026
+    resultado = re.search(r"\d{2}/\d{2}/\d{4}", texto)
+    if resultado is not None:
+        return resultado.group()
+
+    # Plano B: formato "24 de janeiro de 2026"
+    resultado = re.search(r"(\d{1,2}) de (\w+) de (\d{4})", normalizar(texto))
+    if resultado is not None:
+        dia = resultado.group(1).zfill(2)
+        mes = MESES.get(resultado.group(2))
+        ano = resultado.group(3)
+        if mes is not None:
+            return dia + "/" + mes + "/" + ano
+
+    return None
+
 
 pasta = Path("teste_entrada")
 contagem = {}
@@ -121,3 +154,22 @@ print("========== BAIRROS ==========")
 for bairro in sorted(contagem):
     print(bairro, "->", contagem[bairro])
 print("Para revisar:", revisar)
+
+print("========== VERFICAÇÃO DE DATAS ==========")
+pasta = Path("teste_entrada")
+achei = 0
+nao_achei = 0
+
+for arquivo in pasta.rglob("*.docx"):
+    if arquivo.name.startswith("~$"):
+        continue
+    cabecalho = ler_cabecalho(arquivo)
+    data = encontrar_data(cabecalho)
+    if data is None:
+        print("SEM DATA ->", arquivo.name, "|", cabecalho[:120])
+        nao_achei += 1
+    else:
+        achei += 1
+
+print("Com data:", achei, "| Sem data:", nao_achei)
+
